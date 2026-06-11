@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mock Test Platform</title>
+    <style>
+        body { font-family: Arial; background: #f0f2f5; text-align: center; padding: 50px; }
+        button { padding: 10px 20px; margin: 8px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; }
+        .cat-btn { background: #28a745; color: white; }
+        .year-btn { background: #17a2b8; color: white; }
+        .paper-btn { background: #ffc107; color: black; }
+        .back-btn { background: #dc3545; color: white; }
+    </style>
+</head>
+<body>
+<h1>📚 मॉक टेस्ट प्लॅटफॉर्म</h1>
+
+<h2>📌 श्रेणी निवडा:</h2>
+<div id="catDiv">
+    <button class="cat-btn" onclick="selectCategory('पोलिस')">पोलिस</button>
+    <button class="cat-btn" onclick="selectCategory('आर्मी')">आर्मी</button>
+    <button class="cat-btn" onclick="selectCategory('तलाठी')">तलाठी</button>
+    <button class="cat-btn" onclick="selectCategory('SSC')">SSC</button>
+    <button class="cat-btn" onclick="selectCategory('रेल्वे')">रेल्वे</button>
+</div>
+
+<div id="yearDiv" style="margin-top: 20px;"></div>
+<div id="paperDiv" style="margin-top: 20px;"></div>
+
+<script>
+    let selectedCat = "";
+    let years = ["2021", "2022", "2023", "2024", "2025", "2026"];
+
+    function selectCategory(cat) {
+        selectedCat = cat;
+        let html = "<h2>📅 वर्ष निवडा:</h2>";
+        years.forEach(y => {
+            html += `<button class="year-btn" onclick="selectYear('${y}')">${y}</button>`;
+        });
+        document.getElementById("yearDiv").innerHTML = html;
+        document.getElementById("paperDiv").innerHTML = "";
+    }
+
+    function selectYear(yr) {
+        let html = "<h2>📄 प्रश्नपत्रिका निवडा:</h2>";
+        for(let i=1; i<=10; i++) {
+            html += `<button class="paper-btn" onclick="location.href='/test/${selectedCat}/${yr}/${i}'">प्रश्नपत्रिका ${i}</button>`;
+        }
+        document.getElementById("paperDiv").innerHTML = html;
+    }
+</script>
+</body>
+</html>
