@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>पोलिस भरती २०२१ - मॉक टेस्ट</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background: #eef2f7; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 28px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h2 { color: #1e4663; border-left: 6px solid #0077b6; padding-left: 16px; }
+        .question-card { background: #f9fbfd; border-radius: 20px; padding: 20px; margin-bottom: 25px; border: 1px solid #dee2e6; }
+        .question-text { font-size: 1.2rem; font-weight: 600; margin-bottom: 20px; color: #0b3b4f; }
+        .option { display: flex; align-items: center; gap: 12px; background: white; border: 1px solid #ced4da; border-radius: 40px; padding: 10px 18px; margin: 10px 0; cursor: pointer; transition: 0.2s; }
+        .option:hover { background: #e9ecef; transform: translateX(5px); }
+        .option.selected { background: #0077b6; color: white; border-color: #0077b6; }
+        .option-prefix { font-weight: bold; width: 30px; }
+        .nav-buttons { display: flex; justify-content: space-between; margin-top: 30px; gap: 15px; }
+        button { background: #0077b6; color: white; border: none; padding: 12px 24px; border-radius: 40px; font-size: 1rem; cursor: pointer; transition: 0.2s; font-weight: bold; }
+        button:hover { background: #023e8a; transform: scale(1.02); }
+        .back-btn { background: #6c757d; }
+        .result-box { text-align: center; background: #d1e7f5; border-radius: 24px; padding: 20px; margin-top: 20px; }
+        .score { font-size: 2.5rem; font-weight: 800; color: #0f67b3; }
+        hr { margin: 20px 0; }
+        footer { text-align: center; margin-top: 20px; font-size: 0.8rem; color: #5f7d9c; }
+        @media (max-width: 600px) { .container { padding: 15px; } .option { padding: 6px 12px; } }
+    </style>
+</head>
+<body>
+<div class="container" id="examApp">
+    <div style="text-align: center;"><h2>📘 पोलिस भरती २०२१</h2><p>प्रश्नपत्रिका <span th:text="${paper}"></span> | एकूण १०० प्रश्न</p></div>
+    <div id="quizPanel"></div>
+    <div class="nav-buttons">
+        <button class="back-btn" onclick="goBackHome()">🔙 मुख्य पानावर जा</button>
+        <button id="nextBtn" onclick="nextQuestion()">पुढील प्रश्न ▶</button>
+    </div>
+    <footer>© पोलिस भरती सराव संच</footer>
+</div>
+
+<script th:inline="javascript">
+    const paperNo = [[${paper}]];
+    const category = [[${category}]];
+    const year = [[${year}]];
+    const totalQuestions = 100;
+
+    // ===================== तुझे 100 प्रश्न (प्रश्न, पर्याय, योग्य पर्याय क्रमांक 0-3) =====================
+    const questions = [
+        { text: "महाराष्ट्राचे गृहमंत्री कोण आहेत?", options: ["एकनाथ शिंदे", "देवेंद्र फडणवीस", "अजित पवार", "छगन भुजबळ"], correct: 1 },
+        { text: "भारताचे 'मिसाईल मॅन' कोणाला म्हणतात?", options: ["होमी भाभा", "डॉ. ए.पी.जे. अब्दुल कलाम", "सी. व्ही. रामन", "विक्रम साराभाई"], correct: 1 },
+        { text: "'लोणार सरोवर' कोणत्या जिल्ह्यात आहे?", options: ["वाशिम", "अकोला", "बुलढाणा", "अमरावती"], correct: 2 },
+        { text: "'आंबा' या शब्दाचे अनेकवचन काय?", options: ["आंबे", "आंबा", "आंब्या", "यांपैकी नाही"], correct: 0 },
+        { text: "२ + २ * २ = किती?", options: ["८", "६", "१०", "४"], correct: 1 },
+        { text: "५, १०, १५, २०, २५ या संख्यांची सरासरी किती?", options: ["१०", "१५", "२०", "२५"], correct: 1 },
+        { text: "महाराष्ट्राचे राज्य फुलपाखरू कोणते?", options: ["कॉमन मॉर्मन", "ब्लू मॉर्मन", "साधे फुलपाखरू", "यांपैकी नाही"], correct: 1 },
+        { text: "'पाणी' या शब्दाला समानार्थी शब्द?", options: ["वायू", "अग्नी", "जल", "जमीन"], correct: 2 },
+        { text: "सर्वात लहान मूळ संख्या कोणती?", options: ["१", "२", "३", "०"], correct: 1 },
+        { text: "मानवी शरीरात साधारणपणे किती हाडे असतात?", options: ["२००", "२०६", "२१०", "२१५"], correct: 1 },
+        { text: "महाराष्ट्राची उपराजधानी कोणती?", options: ["पुणे", "नागपूर", "नाशिक", "औरंगाबाद"], correct: 1 },
+        { text: "पृथ्वीवर किती टक्के पाणी आहे?", options: ["५०%", "६०%", "७१%", "८०%"], correct: 2 },
+        { text: "रयत शिक्षण संस्थेची स्थापना कोणी केली?", options: ["फुले", "कर्मवीर भाऊराव पाटील", "शाहू महाराज", "आंबेडकर"], correct: 1 },
+        { text: "ग्रामपंचायतीचा सचिव कोण असतो?", options: ["तलाठी", "सरपंच", "ग्रामसेवक", "जिल्हाधिकारी"], correct: 2 },
+        { text: "महाराष्ट्राचे नंदनवन कोणते?", options: ["महाबळेश्वर", "लोणावळा", "खंडाळा", "माथेरान"], correct: 0 },
+        { text: "भारतीय नौदल दिन कधी असतो?", options: ["४ डिसेंबर", "१५ जानेवारी", "८ ऑक्टोबर", "२६ नोव्हेंबर"], correct: 0 },
+        { text: "ताडोबा राष्ट्रीय उद्यान कोणत्या जिल्ह्यात आहे?", options: ["नागपूर", "चंद्रपूर", "भंडारा", "गडचिरोली"], correct: 1 },
+        { text: "शिवनेरी किल्ला कोणत्या जिल्ह्यात आहे?", options: ["पुणे", "नाशिक", "सातारा", "रायगड"], correct: 0 },
+        { text: "जगातील सर्वात लांब नदी कोणती?", options: ["गंगा", "अमेझॉन", "नाईल", "यांपैकी नाही"], correct: 2 },
+        { text: "'तो वेगाने धावतो' - क्रियाविशेषण कोणते?", options: ["तो", "वेगाने", "धावतो", "यांपैकी नाही"], correct: 1 },
+        { text: "नामाऐवजी येणारा शब्द?", options: ["विशेषण", "क्रियापद", "सर्वनाम", "शब्दयोगी"], correct: 2 },
+        { text: "'अघोष' चा विरुद्धार्थी?", options: ["सघोष", "घोष", "निघोष", "यांपैकी नाही"], correct: 0 },
+        { text: "'अश्व'चा समानार्थी?", options: ["घोडा", "हत्ती", "वाघ", "सिंह"], correct: 0 },
+        { text: "'प्रतिदिन' समास?", options: ["तत्पुरुष", "अव्ययीभाव", "द्वंद्व", "बहुव्रीही"], correct: 1 },
+        { text: "'त्याने आंबा खाल्ला' - प्रयोग?", options: ["कर्तरी", "कर्मणी", "भावे", "यांपैकी नाही"], correct: 1 },
+        { text: "शुद्ध शब्द ओळखा?", options: ["आशिर्वाद", "आर्शिवाद", "आशीर्वाद", "आशिरवाद"], correct: 2 },
+        { text: "'दिवाकर' संधी?", options: ["दिवा+कर", "दिव+आकर", "दिव+कर", "दिवा+आकर"], correct: 0 },
+        { text: "१ ते ५० पर्यंतच्या मूळ संख्या किती?", options: ["१०", "१५", "२०", "१२"], correct: 1 },
+        { text: "५०० रुपयांवर १०% व्याजाने १ वर्षाचे व्याज?", options: ["५०", "१००", "२५", "७५"], correct: 0 },
+        { text: "त्रिकोणाच्या तिन्ही कोनांची बेरीज किती?", options: ["९०", "१८०", "२७०", "३६०"], correct: 1 },
+        { text: "७ चा घन किती?", options: ["४९", "२१६", "३४३", "५१२"], correct: 2 },
+        { text: "१५ चा वर्ग किती?", options: ["१००", "२२५", "२५०", "२००"], correct: 1 },
+        { text: "८१ चे वर्गमूळ?", options: ["८", "९", "७", "६"], correct: 1 },
+        { text: "९९ च्या नंतरची सम संख्या कोणती?", options: ["१००", "१०१", "१०२", "९८"], correct: 0 },
+        { text: "मालिका: ५, १०, १५, २०, ?", options: ["२५", "३०", "३५", "४०"], correct: 0 },
+        { text: "ए, सी, ई, जी, ?", options: ["एच", "आय", "जे", "के"], correct: 1 },
+        { text: "आरशात 'A' कसा दिसेल?", options: ["A", "B", "C", "D"], correct: 0 },
+        { text: "आईचा भाऊ म्हणजे?", options: ["काका", "मामा", "दादा", "बाबा"], correct: 1 },
+        { text: "दिशा: सूर्याच्या विरुद्ध दिशा?", options: ["पूर्व", "पश्चिम", "उत्तर", "दक्षिण"], correct: 1 },
+        { text: "वडिलांचे वडील?", options: ["काका", "मामा", "आजोबा", "पणजोबा"], correct: 2 },
+        { text: "सध्याचे राष्ट्रपती?", options: ["प्रतिभा पाटील", "द्रौपदी मुर्मू", "कोविंद", "मोदी"], correct: 1 },
+        { text: "'मेक इन इंडिया' कधी सुरू झाले?", options: ["२०१०", "२०१४", "२०१५", "२०२०"], correct: 1 },
+        { text: "पोलीस स्थापना दिन?", options: ["१ जानेवारी", "२ जानेवारी", "३ जानेवारी", "४ जानेवारी"], correct: 1 },
+        { text: "नाटो (NATO) मुख्यालय?", options: ["लंडन", "पॅरिस", "ब्रसेल्स", "न्यूयॉर्क"], correct: 2 },
+        { text: "सध्याचे रेल्वे मंत्री?", options: ["मोदी", "अश्विनी वैष्णव", "शहा", "गडकरी"], correct: 1 },
+        { text: "ऑलिम्पिक दर किती वर्षांनी?", options: ["२", "३", "४", "५"], correct: 2 },
+        { text: "सर्वात जवळचा तारा?", options: ["सूर्य", "ध्रुव", "मंगळ", "शुक्र"], correct: 0 },
+        { text: "भारताचा राष्ट्रीय प्राणी?", options: ["वाघ", "सिंह", "हत्ती", "बिबट्या"], correct: 0 },
+        { text: "'कास पठार' कोणत्या जिल्ह्यात?", options: ["पुणे", "सातारा", "सांगली", "कोल्हापूर"], correct: 1 },
+        { text: "भारतीय दंड संहिता (IPC) लागू वर्ष?", options: ["१८५७", "१८६०", "१९४७", "१९५०"], correct: 1 },
+        { text: "लोकसभेचे सदस्य होण्यासाठी किमान वय?", options: ["२५", "३०", "३५", "२१"], correct: 0 },
+        { text: "महाराष्ट्राचे पहिले मुख्यमंत्री?", options: ["वसंतराव नाईक", "यशवंतराव चव्हाण", "शरद पवार", "विलासराव देशमुख"], correct: 1 },
+        { text: "'कॅन्सर'च्या अभ्यासाला काय म्हणतात?", options: ["ऑन्कोलॉजी", "कार्डिओलॉजी", "डर्मेटोलॉजी", "नेफ्रोलॉजी"], correct: 0 },
+        { text: "खारे पाणी पिण्यासाठी योग्य करण्यासाठी कोणती प्रक्रिया?", options: ["उर्ध्वपातन", "गाळण", "बाष्पीभवन", "यांपैकी नाही"], correct: 0 },
+        { text: "महाराष्ट्रात एकूण किती प्रशासकीय विभाग?", options: ["५", "६", "७", "८"], correct: 1 },
+        { text: "भारताचे राष्ट्रगीत कोणी लिहिले?", options: ["बंकिमचंद्र", "रवींद्रनाथ टागोर", "सावरकर", "आझाद"], correct: 1 },
+        { text: "'माणसाचा' या शब्दाचा मूळ शब्द?", options: ["माणूस", "मानव", "मानवी", "यांपैकी नाही"], correct: 0 },
+        { text: "४८ चे निम्मे किती?", options: ["२४", "२२", "२६", "१८"], correct: 0 },
+        { text: "कोणता ग्रह 'लाल ग्रह' म्हणून ओळखला जातो?", options: ["शुक्र", "मंगळ", "बुध", "गुरू"], correct: 1 },
+        { text: "'सत्यशोधक समाज' कोणाची संस्था?", options: ["फुले", "आंबेडकर", "शाहू", "आगरकर"], correct: 0 },
+        { text: "महाराष्ट्रातील सर्वोच्च शिखर?", options: ["कळसूबाई", "तोरणा", "रायगड", "साल्हेर"], correct: 0 },
+        { text: "विद्युत प्रवाहाचे एकक?", options: ["व्होल्ट", "अँपिअर", "वॅट", "ओहम"], correct: 1 },
+        { text: "ध्वनिची तीव्रता मोजण्याचे एकक?", options: ["डेसिबल", "हर्ट्झ", "वॅट", "मीटर"], correct: 0 },
+        { text: "'अनाथांची माय' कोणाला म्हणतात?", options: ["सिंधुताई सपकाळ", "मेधा पाटकर", "मदर तेरेसा", "सावित्रीबाई"], correct: 0 },
+        { text: "भारताचा राष्ट्रीय ध्वज कधी स्वीकारला?", options: ["१९४७", "१९५०", "१९४८", "१९४९"], correct: 0 },
+        { text: "सजीवांच्या पेशींचा शोध कोणी लावला?", options: ["रॉबर्ट हुक", "न्यूटन", "डार्विन", "आइन्स्टाईन"], correct: 0 },
+        { text: "'सुवर्ण मंदिर' कोठे आहे?", options: ["दिल्ली", "अमृतसर", "आग्रा", "मुंबई"], correct: 1 },
+        { text: "भारताचे पहिले गृहमंत्री?", options: ["नेहरू", "पटेल", "आझाद", "गांधी"], correct: 1 },
+        { text: "क्षेत्रफळाने सर्वात मोठा देश?", options: ["भारत", "रशिया", "अमेरिका", "चीन"], correct: 1 },
+        { text: "महाराष्ट्रातील पहिला साखर कारखाना?", options: ["प्रवरा नगर", "कोल्हापूर", "सातारा", "पुणे"], correct: 0 },
+        { text: "पाण्याचे रेणुसूत्र काय?", options: ["H2O", "CO2", "O2", "H2"], correct: 0 },
+        { text: "खेडा सत्याग्रह कोणी केला?", options: ["नेहरू", "गांधी", "टिळक", "सावरकर"], correct: 1 },
+        { text: "'पवनार' आश्रम कोणाचा?", options: ["विनोबा भावे", "गांधी", "आंबेडकर", "फुले"], correct: 0 },
+        { text: "महाराष्ट्र पोलीस ब्रीदवाक्य?", options: ["सद्रक्षणाय खलनिग्रहणाय", "सत्यमेव जयते", "वंदे मातरम", "यांपैकी नाही"], correct: 0 },
+        { text: "पेनिसिलिनचा शोध कोणी लावला?", options: ["फ्लेमिंग", "पाश्चर", "एडिसन", "न्यूटन"], correct: 0 },
+        { text: "डेंग्यू कशामुळे होतो?", options: ["डास", "माशी", "उंदीर", "माकड"], correct: 0 },
+        { text: "'चाफा' हे कोणत्या प्रकारची नाम?", options: ["सामान्य", "विशेष", "भाववाचक", "यांपैकी नाही"], correct: 1 },
+        { text: "'धावणे' हा काय आहे?", options: ["नाम", "सर्वनाम", "धातूसाधित नाम", "विशेषण"], correct: 2 },
+        { text: "महाराष्ट्राचे राज्य फूल कोणते?", options: ["जाई", "जुई", "जरुल", "गुलाब"], correct: 2 },
+        { text: "भारताचे पहिले उपराष्ट्रपती?", options: ["राधाकृष्णन", "झाकीर हुसेन", "गिरी", "पाठक"], correct: 0 },
+        { text: "७२ चे ४०% किती?", options: ["२८.८", "२९", "३०", "२७.८"], correct: 0 },
+        { text: "१०० चे दुप्पट?", options: ["१५०", "२००", "२५०", "३००"], correct: 1 },
+        { text: "वर्तुळाचे क्षेत्रफळ सूत्र?", options: ["πr²", "2πr", "πd", "r²"], correct: 0 },
+        { text: "कांदा कापताना डोळ्यांतून पाणी येते कारण त्यात काय असते?", options: ["सल्फर", "ऑक्सिजन", "कार्बन", "नायट्रोजन"], correct: 0 },
+        { text: "मानवी मेंदूचे वजन?", options: ["१३००-१४०० ग्रॅम", "१०००", "८००", "१५००"], correct: 0 },
+        { text: "'संगणक' जनक?", options: ["बॅबेज", "गेट्स", "अंबाणी", "टाटा"], correct: 0 },
+        { text: "'मराठी वृत्तपत्र' जनक?", options: ["बाळशास्त्री जांभेकर", "टिळक", "आगरकर", "फुले"], correct: 0 },
+        { text: "भारताचे सर्वोच्च पद?", options: ["राष्ट्रपती", "पंतप्रधान", "गृहमंत्री", "सरन्यायाधीश"], correct: 0 },
+        { text: "लोकशाही म्हणजे काय?", options: ["लोकांचे राज्य", "राजाचे राज्य", "हुकूमशाही", "यांपैकी नाही"], correct: 0 },
+        { text: "महाराष्ट्र दिन?", options: ["१ मे", "१ जानेवारी", "१५ ऑगस्ट", "२६ जानेवारी"], correct: 0 },
+        { text: "'सूर्य' कोणत्या दिशेला मावळतो?", options: ["पूर्व", "पश्चिम", "उत्तर", "दक्षिण"], correct: 1 },
+        { text: "चहामध्ये कोणते उत्तेजक असते?", options: ["निकोटीन", "कॅफिन", "टॅनिन", "यांपैकी नाही"], correct: 1 },
+        { text: "मानवी हृदय एका मिनिटात किती वेळा धडधडते?", options: ["७०-७५", "६०", "८०", "९०"], correct: 0 },
+        { text: "'ताजमहाल' कोठे आहे?", options: ["दिल्ली", "आग्रा", "मुंबई", "पुणे"], correct: 1 },
+        { text: "भारताचा राष्ट्रीय पक्षी?", options: ["मोर", "पोपट", "कावळा", "चिमणी"], correct: 0 },
+        { text: "'इंद्रधनुष्यात' किती रंग असतात?", options: ["५", "६", "७", "८"], correct: 2 },
+        { text: "'कोरोना'चा सर्वात पहिला रुग्ण कोठे सापडला?", options: ["चीन", "भारत", "अमेरिका", "इटली"], correct: 0 },
+        { text: "'डिजिटल इंडिया' कोणाशी संबंधित आहे?", options: ["तंत्रज्ञान", "शेती", "उद्योग", "शिक्षण"], correct: 0 },
+        { text: "पांढरा हत्ती कोणत्या देशात आढळतो?", options: ["थायलंड", "भारत", "जपान", "अमेरिका"], correct: 0 },
+        { text: "भारताची राजधानी?", options: ["मुंबई", "दिल्ली", "कोलकाता", "चेन्नई"], correct: 1 }
+    ];
+
+    let userAnswers = new Array(totalQuestions).fill(-1);
+    let currentIndex = 0;
+
+    function renderQuestion() {
+        const q = questions[currentIndex];
+        let html = `<div class="question-card"><div class="question-text">❓ प्रश्न ${currentIndex+1}/${totalQuestions}<br>${q.text}</div>`;
+        q.options.forEach((opt, idx) => {
+            let isSelected = (userAnswers[currentIndex] === idx);
+            html += `<div class="option ${isSelected ? 'selected' : ''}" onclick="selectOption(${idx})">
+                        <span class="option-prefix">${String.fromCharCode(65+idx)}.</span> ${opt}
+                    </div>`;
+        });
+        html += `</div>`;
+        document.getElementById("quizPanel").innerHTML = html;
+        const nextBtn = document.getElementById("nextBtn");
+        if (currentIndex === totalQuestions-1) nextBtn.innerHTML = "✅ निकाल पहा";
+        else nextBtn.innerHTML = "पुढील प्रश्न ▶";
+    }
+
+    function selectOption(optIndex) {
+        userAnswers[currentIndex] = optIndex;
+        renderQuestion();
+    }
+
+    function nextQuestion() {
+        if (currentIndex < totalQuestions-1) {
+            currentIndex++;
+            renderQuestion();
+        } else {
+            let score = 0;
+            for (let i=0; i<totalQuestions; i++) {
+                if (userAnswers[i] === questions[i].correct) score++;
+            }
+            let percent = (score/totalQuestions)*100;
+            document.getElementById("quizPanel").innerHTML = `
+                <div class="result-box">
+                    <div class="score">🎯 ${score}/${totalQuestions}</div>
+                    <p>टक्केवारी : ${percent.toFixed(1)}%</p>
+                    <p>📊 बरोबर उत्तरे : ${score} &nbsp;&nbsp; ❌ चुकीची : ${totalQuestions-score}</p>
+                    <button onclick="location.reload()">🔄 पुन्हा प्रयत्न करा</button>
+                </div>
+            `;
+            document.getElementById("nextBtn").style.display = "none";
+        }
+    }
+
+    function goBackHome() { window.location.href = "/"; }
+
+    renderQuestion();
+</script>
+</body>
+</html>
